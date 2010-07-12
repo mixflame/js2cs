@@ -2,17 +2,19 @@ var parser = require('./parser').parser;
 var sys = require('sys');
 var fs = require('fs');
 
+/* object inspect method */
 var p = function(obj) { sys.puts(sys.inspect(obj, true, 100)); }
 
+/* read input (sync) */
 var string_raw_js = fs.readFileSync(process.argv[2], "utf8");
 
+/* parse section */
 try{
 var ast = parser.parse(string_raw_js);
 } catch(e) {
 sys.log(e.type + " on line " + e.line + " on column " + e.column + " :" + e.message);
 }
 
-/* the output of this script */
 var output = '';
 var indent_level = 0;
 var addToOut = function(out) {
@@ -27,13 +29,17 @@ var parseChildNodes = function(nodes) {
           }
         _node = nodes[i];
         parseNode(_node);
-        addToOut("\n");
+        /* it doesnt wake up from the above until the line is over */
+        if (i < nodes.length -1) addToOut("\n");
       }
 }
 
 /* eats tokens and makes coffee */
 var parseNode = function(node) {
+  
   sys.puts(node.type);
+  p(node);
+
   switch (node.type) {
     case "Program":
       if (node.elements) { parseChildNodes(node.elements); }
@@ -53,8 +59,19 @@ var parseNode = function(node) {
       indent_level = indent_level - 1;
       break;
     case "Block":
-      p(node);
-      
+      indent_level = indent_level + 1;
+      if (node.statements) { parseChildNodes(node.statements); }
+      indent_level = indent_level - 1;
+      break;
+    case "IfStatement":
+      /* condition */
+      addToOut("if ");
+      parseNode(node.condition);
+      addToOut("\n");
+      /* statements */
+      indent_level = indent_level + 1;
+      if (node.ifStatement.statements) { parseChildNodes(node.ifStatement.statements); }
+      indent_level = indent_level - 1;
       break;
     case "AssignmentExpression":
       parseNode(node.left);
@@ -65,6 +82,7 @@ var parseNode = function(node) {
       parseNode(node.left);
       switch (node.operator)
       {
+      /* switch to "not" and "isnt" or something here */
       case "!=":
         addToOut("!=");
         break;
@@ -78,7 +96,12 @@ var parseNode = function(node) {
       parseNode(node.right);
       break;
     case "Variable":
-      addToOut(node.name);
+      if (node.name.indexOf("var") == -1) {
+        addToOut(node.name);
+      } else {
+        addToOut(node.name.substr(4, node.name.length));
+      }
+      
       break;
     case "FunctionCall":
       parseNode(node.name);
@@ -116,15 +139,11 @@ var parseNode = function(node) {
 }
 
 /* output section */
-if (process.argv[3] == "--convert")
+if(process.argv[3] == "--convert")
 {
   parseNode(ast);
   sys.puts("JavaScript: ");
   sys.puts(string_raw_js);
   sys.puts("CoffeeScript: ");
   sys.puts(output);
-}
-else
-{
-  p(ast);
 }
