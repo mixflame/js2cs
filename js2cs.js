@@ -2,6 +2,11 @@ var parser = require('./parser').parser;
 var sys = require('sys');
 var fs = require('fs');
 
+/* give us trim */
+String.prototype.trim = function () {
+    return this.replace(/^\s*/, "").replace(/\s*$/, "");
+}
+
 /* object inspect method */
 var p = function(obj) { sys.puts(sys.inspect(obj, true, 100)); }
 
@@ -16,12 +21,20 @@ sys.log(e.type + " on line " + e.line + " on column " + e.column + " :" + e.mess
 }
 
 var output = '';
+var iteration = 0;
 var indent_level = 0;
+var increaseIndent = function() {
+  indent_level = indent_level + 1;
+}
+var decreaseIndent = function() {
+  indent_level = indent_level - 1;
+}
+
 var addToOut = function(out) {
   output += out;
 }
 
-
+/* calls parseNode on a collection of nodes (statements, elements, or properties) */
 var parseChildNodes = function(nodes) {
   for(var i = 0; i < nodes.length; ++i) {
         for(var c = 0; c < indent_level; ++c) {
@@ -36,13 +49,19 @@ var parseChildNodes = function(nodes) {
 
 /* eats tokens and makes coffee */
 var parseNode = function(node) {
-  
-  sys.puts(node.type);
+
+  if (process.argv[3] == "--debug")
+  {
+  sys.puts(iteration + " " + node.type);
   p(node);
+  }
 
   switch (node.type) {
     case "Program":
       if (node.elements) { parseChildNodes(node.elements); }
+      break;
+    case "This":
+      addToOut("@");
       break;
     case "Function":
       if (node.params.length > 0) {
@@ -54,54 +73,102 @@ var parseNode = function(node) {
         addToOut(")");
       }
       addToOut(" ->\n");
-      indent_level = indent_level + 1;
+      increaseIndent();
       if (node.elements) { parseChildNodes(node.elements); }
-      indent_level = indent_level - 1;
+      decreaseIndent();
       break;
     case "Block":
-      indent_level = indent_level + 1;
+      increaseIndent();
       if (node.statements) { parseChildNodes(node.statements); }
-      indent_level = indent_level - 1;
+      decreaseIndent();
       break;
     case "IfStatement":
       /* condition */
-      addToOut("if ");
-      parseNode(node.condition);
+      if(node.condition.operator != "!")
+      {
+        addToOut("if ");
+        parseNode(node.condition);
+      } else {
+        addToOut("unless ");
+        /* skip next node, it's "not" */
+        parseNode(node.condition.expression);
+      }
+      
       addToOut("\n");
       /* statements */
-      indent_level = indent_level + 1;
+      increaseIndent();
       if (node.ifStatement.statements) { parseChildNodes(node.ifStatement.statements); }
-      indent_level = indent_level - 1;
+      decreaseIndent();
+      /* what happened to elseStatement oh well lol */
       break;
     case "AssignmentExpression":
       parseNode(node.left);
       addToOut(": ");
       parseNode(node.right);
       break;
+    case 'PropertyAssignment':
+      addToOut(node.name);
+      addToOut(": ");
+      parseNode(node.value);
+      break;
+    case "PropertyAccess":
+      parseNode(node.base);
+      if(node.base.type != "This") addToOut(".");
+      addToOut(node.name.trim());
+      break;
     case "BinaryExpression":
       parseNode(node.left);
+      addToOut(" ");
       switch (node.operator)
       {
       /* switch to "not" and "isnt" or something here */
-      case "!=":
-        addToOut("!=");
+      case "!":
+        addToOut("not");
         break;
-      case "==":
-        addToOut("==");
+      case "===":
+        addToOut("is");
         break;
+      case "!==":
+        addToOut("isnt");
+        break;
+      case "&&":
+        addToOut("and");
+        break;
+      case "||":
+        addToOut("or");
+        break;      
       default:
         addToOut(node.operator);
       }
       addToOut(" ");
       parseNode(node.right);
       break;
+    case "UnaryExpression":
+      switch (node.operator)
+      {
+        case '!':
+          addToOut("not ");
+          break;
+        default:
+          addToOut(node.operator);    
+      }
+      parseNode(node.expression);
+      break;
+    case "ConditionalExpression":
+      addToOut("if ");
+      parseNode(node.condition);
+      addToOut(" ");
+      parseNode(node.trueExpression);
+      addToOut(" else ");
+      parseNode(node.falseExpression);
+      break;
     case "Variable":
       if (node.name.indexOf("var") == -1) {
-        addToOut(node.name);
+        addToOut(node.name.trim());
       } else {
-        addToOut(node.name.substr(4, node.name.length));
+        /* -5 because of 4 for "var " and 1 for " " after */
+        addToOut(node.name.substr(4, node.name.length - 4).trim());
       }
-      
       break;
     case "FunctionCall":
       parseNode(node.name);
@@ -120,6 +187,9 @@ var parseNode = function(node) {
     case 'NumericLiteral':
       addToOut(node.value);
       break;
+    case 'RegularExpressionLiteral':
+      
+      break;
     case 'NullLiteral':
       addToOut("null");
       break;
@@ -133,17 +203,39 @@ var parseNode = function(node) {
         addToOut("]");
       }
       break;
-      
+    case 'ObjectLiteral':
+      if (node.properties.length > 0) {
+        addToOut("{\n");
+        increaseIndent();
+        if (node.properties) parseChildNodes(node.properties);
+        decreaseIndent();
+        addToOut("\n}");
+      }
+      break;
+    case 'BooleanLiteral':
+      if (node.value == true) {
+        addToOut("yes");
+      } else {
+        addToOut("no");
+      }
+    break;      
   }
   
 }
 
+
+/* main section */
+parseNode(ast);
+
 /* output section */
 if(process.argv[3] == "--convert")
 {
-  parseNode(ast);
-  sys.puts("JavaScript: ");
+  sys.puts(output);
+}
+else if(process.argv[3] == "--showjs")
+{
+  sys.puts("Original JavaScript: ");
   sys.puts(string_raw_js);
-  sys.puts("CoffeeScript: ");
+  sys.puts("Generated CoffeeScript: ");  
   sys.puts(output);
 }
