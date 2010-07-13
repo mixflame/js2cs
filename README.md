@@ -14,39 +14,13 @@ Browser demo is in /example
 Known Limitation
 --------------------
 
-* Return is broken.
+* "return" is broken.
 
 * No support for LabelledStatement.
 
-* Very finicky about if and else if statements. To fix, change from
+* Very finicky about if and else if statements.
 
-<code>
-if (condition) {
-
-}
-</code>
-to
-<code>
-if(condition)
-{
-
-}
-</code>
-and
-<code>
-} else if (condition) {
-
-}
-</code>
-to
-<code>
-}
-else
-if(condition)
-{
-
-}
-</code>
+* Incomplete. If you find something that isn't implemented, add it to the top of test.js and pull request me.
 
 --
 
