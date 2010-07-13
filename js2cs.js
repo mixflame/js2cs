@@ -3,7 +3,8 @@ var sys = require('sys');
 var fs = require('fs');
 
 /* give us trim */
-String.prototype.trim = function () {
+String.prototype.trim = function ()
+{
     return this.replace(/^\s*/, "").replace(/\s*$/, "");
 }
 
@@ -47,7 +48,10 @@ var parseChildNodes = function(nodes) {
         }
         parseNode(_node);
         /* it doesnt wake up from the above until the line is over */
-        if ((i < nodes.length -1) && (_node.type != "BreakStatement")) addToOut("\n");
+        if ((i < nodes.length -1) && (_node.type != "BreakStatement"))
+        { 
+        addToOut("\n");
+        }
       }
 }
 
