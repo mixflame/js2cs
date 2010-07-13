@@ -35,33 +35,36 @@ var addToOut = function(out) {
   output += out;
 }
 
-/* calls parseNode on a collection of nodes (statements, elements, or properties) */
+/* calls parseNode on a collection of nodes (statements, elements, properties, clauses) */
 var parseChildNodes = function(nodes) {
   for(var i = 0; i < nodes.length; ++i) {
+        /* indenter */
+        _node = nodes[i];
+        if(_node.type != "BreakStatement") {
         for(var c = 0; c < indent_level; ++c) {
             addToOut("  ");
           }
-        _node = nodes[i];
+        }
         parseNode(_node);
         /* it doesnt wake up from the above until the line is over */
-        if (i < nodes.length -1) addToOut("\n");
+        if ((i < nodes.length -1) && (_node.type != "BreakStatement")) addToOut("\n");
       }
 }
 
 /* eats tokens and makes coffee */
 var parseNode = function(node) {
+  iteration = iteration + 1;
 
   if (process.argv[3] == "--debug")
   {
-  iteration = iteration + 1;
-  sys.puts(iteration + " " + node.type);
-  p(node);
+    sys.puts(iteration + " " + node.type);
+    p(node);
   } 
 
   if (process.argv[3] == "--ilevel")
-    {
-      sys.puts("("+indent_level+")");
-    } 
+  {
+    sys.puts(iteration + " (" + indent_level + ") " +  node.type + " - " + node.name);
+  } 
 
   switch (node.type) {
     case "Program":
@@ -100,29 +103,39 @@ var parseNode = function(node) {
     case "CaseClause":
       addToOut("when ");
       parseNode(node.selector);
-      if (node.statements.length > 1)
+      /* 2 is the minimum because break; is a statement too */
+      if (node.statements.length > 2 || node.statements.length == 1)
       {
         addToOut("\n");
         increaseIndent();
         if (node.statements) parseChildNodes(node.statements);
         decreaseIndent();
       }
-      else 
+      else if (node.statements.length == 2)
       {
         addToOut(" then ");
-        /* if (node.statements) parseNode(node.statements); */
+        if (node.statements) parseNode(node.statements[0]);
       }
 
       break;
     case "DefaultClause":
       addToOut("else ");
-      if (node.statements > 1) addToOut("\n");
-      increaseIndent();
-      if (node.statements) parseChildNodes(node.statements);
-      decreaseIndent();
+      if (node.statements.length > 2 || node.statements.length == 1)
+      {
+        addToOut("\n");
+        increaseIndent();
+        if (node.statements) parseChildNodes(node.statements);
+        decreaseIndent();
+      }
+      else if (node.statements.length == 2)
+      {
+        addToOut(" then ");
+        if (node.statements) parseNode(node.statements[0]);
+      }
       break;
     case "BreakStatement":
-      /* not used */
+      break;
+    case "LabelledStatement":
       break;
     case "IfStatement":
       /* condition */
@@ -160,6 +173,31 @@ var parseNode = function(node) {
       parseChildNodes([node.counter]); /* bad hack to get indent level lul */
       decreaseIndent();
       if(node.statement) parseNode(node.statement);
+      break;
+    case "WhileStatement":
+      parseNode(node.condition);
+      break;
+    case "TryStatement":
+      addToOut("try\n");
+      parseNode(node.block);
+      addToOut("\n");
+      if(node['catch']) {
+      addToOut("catch ");
+      parseNode(node['catch']);
+      }
+      if(node['finally']) {
+      addToOut("finally\n");
+      parseNode(node['finally']);
+      }
+      break;
+    case "Catch":
+      if (node.identifier) addToOut(node.identifier);
+      addToOut("\n");
+      parseNode(node.block);
+      addToOut("\n");
+      break;
+    case "Finally":
+      parseNode(node.block);
       break;
     case "AssignmentExpression":
       parseNode(node.left);
@@ -204,7 +242,6 @@ var parseNode = function(node) {
         addToOut(node.operator);
         addToOut(" ");
       }
-      
       parseNode(node.right);
       break;
     case "UnaryExpression":
@@ -228,8 +265,7 @@ var parseNode = function(node) {
       break;
     case "PostfixExpression":
       switch (node.operator)
-      {
-        
+      { 
         case '++':
         parseNode(node.expression);
         addToOut(" = ");
