@@ -175,7 +175,10 @@ var parseNode = function(node) {
       if(node.statement) parseNode(node.statement);
       break;
     case "WhileStatement":
+      addToOut("while ");
       parseNode(node.condition);
+      addToOut("\n");
+      if(node.statement) parseNode(node.statement);
       break;
     case "TryStatement":
       addToOut("try\n");
