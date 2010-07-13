@@ -1,8 +1,19 @@
-/regular_expression/;
+switch(being_switched){
+  case 'first_case':
+    nothing();
+    break;
+  case 'second_case':
+    nothing();
+    break;
+}
 
 /*
+for(_e = 0, _g = thing.length; _e < _g; _e--)
+{
+  bff_art();
+}
 
-if(thing !== true && thing === stuff)
+if(thing !== true && bad_people_were_supposed_to_come === true)
 {
   if(!(answer === false))
   {
@@ -23,11 +34,12 @@ if(thing !== true && thing === stuff)
     }
   }
   print("it will break");
+  complain();
 }
-else 
+else
 {
   badStuff(0);
   program.asplode(/linux/);
 }
+ */
 
-*/

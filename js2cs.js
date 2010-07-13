@@ -52,6 +52,7 @@ var parseNode = function(node) {
 
   if (process.argv[3] == "--debug")
   {
+  iteration = iteration + 1;
   sys.puts(iteration + " " + node.type);
   p(node);
   }
@@ -93,13 +94,31 @@ var parseNode = function(node) {
         /* skip next node, it's "not" */
         parseNode(node.condition.expression);
       }
-      
       addToOut("\n");
       /* statements */
       increaseIndent();
       if (node.ifStatement.statements) { parseChildNodes(node.ifStatement.statements); }
       decreaseIndent();
-      /* what happened to elseStatement oh well lol */
+      if(node.elseStatement != null) {
+      addToOut("\n");
+      addToOut("else"); /* limitation: javascript.pegjs doesnt know else if */
+      addToOut("\n");
+      increaseIndent();
+      if (node.elseStatement.statements) { parseChildNodes(node.elseStatement.statements); }
+      decreaseIndent();
+      }
+      break;
+    case "ForStatement":
+      /* converts to while because this mode is unsupported */
+      parseNode(node.initializer);
+      addToOut("\n");
+      addToOut("while ");
+      parseNode(node.test);
+      addToOut("\n");
+      increaseIndent();
+      parseChildNodes([node.counter]); /* bad hack to get indent level lul */
+      decreaseIndent();
+      if(node.statement) parseNode(node.statement);
       break;
     case "AssignmentExpression":
       parseNode(node.left);
@@ -123,24 +142,28 @@ var parseNode = function(node) {
       {
       /* switch to "not" and "isnt" or something here */
       case "!":
-        addToOut("not");
+        addToOut("not ");
         break;
       case "===":
-        addToOut("is");
+        addToOut("is ");
         break;
       case "!==":
-        addToOut("isnt");
+        addToOut("isnt ");
         break;
       case "&&":
-        addToOut("and");
+        addToOut("and ");
         break;
       case "||":
-        addToOut("or");
-        break;      
+        addToOut("or ");
+        break;   
+      case ",":
+        addToOut("\n"); /* no support for that operator yet. try to evaluate on seperate lines. */
+        break;   
       default:
         addToOut(node.operator);
+        addToOut(" ");
       }
-      addToOut(" ");
+      
       parseNode(node.right);
       break;
     case "UnaryExpression":
@@ -161,6 +184,25 @@ var parseNode = function(node) {
       parseNode(node.trueExpression);
       addToOut(" else ");
       parseNode(node.falseExpression);
+      break;
+    case "PostfixExpression":
+      switch (node.operator)
+      {
+        
+        case '++':
+        parseNode(node.expression);
+        addToOut(" = ");
+        parseNode(node.expression);
+        addToOut(" + 1");
+        break;
+        case '--':
+        parseNode(node.expression);
+        addToOut(" = ");
+        parseNode(node.expression);
+        addToOut(" - 1");
+        break;
+      }
+      addToOut("\n");
       break;
     case "Variable":
       if (node.name.indexOf("var") == -1) {
@@ -188,7 +230,9 @@ var parseNode = function(node) {
       addToOut(node.value);
       break;
     case 'RegularExpressionLiteral':
-      
+      addToOut("/");
+      addToOut(node.body);
+      addToOut("/" + node.flags);
       break;
     case 'NullLiteral':
       addToOut("null");
@@ -228,7 +272,7 @@ var parseNode = function(node) {
 parseNode(ast);
 
 /* output section */
-if(process.argv[3] == "--convert")
+if(process.argv[3] == "--convert" || process.argv[3] == null)
 {
   sys.puts(output);
 }
