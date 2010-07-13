@@ -17,7 +17,8 @@ var string_raw_js = fs.readFileSync(process.argv[2], "utf8");
 try{
 var ast = parser.parse(string_raw_js);
 } catch(e) {
-sys.log(e.type + " on line " + e.line + " on column " + e.column + " :" + e.message);
+sys.log(e.name + " on line " + e.line + " on column " + e.column + ": " + e.message);
+process.exit(1);
 }
 
 var output = '';
@@ -55,7 +56,12 @@ var parseNode = function(node) {
   iteration = iteration + 1;
   sys.puts(iteration + " " + node.type);
   p(node);
-  }
+  } 
+
+  if (process.argv[3] == "--ilevel")
+    {
+      sys.puts("("+indent_level+")");
+    } 
 
   switch (node.type) {
     case "Program":
@@ -82,6 +88,41 @@ var parseNode = function(node) {
       increaseIndent();
       if (node.statements) { parseChildNodes(node.statements); }
       decreaseIndent();
+      break;
+    case "SwitchStatement":
+      addToOut("switch ");
+      parseNode(node.expression);
+      addToOut("\n");
+      increaseIndent();
+      parseChildNodes(node.clauses);
+      decreaseIndent();
+      break;
+    case "CaseClause":
+      addToOut("when ");
+      parseNode(node.selector);
+      if (node.statements.length > 1)
+      {
+        addToOut("\n");
+        increaseIndent();
+        if (node.statements) parseChildNodes(node.statements);
+        decreaseIndent();
+      }
+      else 
+      {
+        addToOut(" then ");
+        /* if (node.statements) parseNode(node.statements); */
+      }
+
+      break;
+    case "DefaultClause":
+      addToOut("else ");
+      if (node.statements > 1) addToOut("\n");
+      increaseIndent();
+      if (node.statements) parseChildNodes(node.statements);
+      decreaseIndent();
+      break;
+    case "BreakStatement":
+      /* not used */
       break;
     case "IfStatement":
       /* condition */
@@ -213,10 +254,10 @@ var parseNode = function(node) {
       }
       break;
     case "FunctionCall":
-      parseNode(node.name);
-      addToOut(" ");
+      parseNode(node.name);    
       if (node.arguments.length > 0)
       {
+        addToOut(" ");
         for(var i = 0; i < node.arguments.length; ++i) {
           parseNode(node.arguments[i]);
           if (i < node.arguments.length - 1) addToOut(", ");

@@ -1,13 +1,13 @@
-switch(being_switched){
-  case 'first_case':
-    nothing();
-    break;
-  case 'second_case':
-    nothing();
-    break;
+switch(being_switched)
+{
+  case('acceptable'):
+    software();
+  case('else'):
+  default:
+  break;
 }
 
-/*
+
 for(_e = 0, _g = thing.length; _e < _g; _e--)
 {
   bff_art();
@@ -41,5 +41,5 @@ else
   badStuff(0);
   program.asplode(/linux/);
 }
- */
+
 
