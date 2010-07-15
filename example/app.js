@@ -1,4 +1,3 @@
-
 String.prototype.trim = function () {
     return this.replace(/^\s*/, "").replace(/\s*$/, "");
 }
@@ -8,6 +7,7 @@ var parseJs = function(js) {
 }
 
 var output = '';
+var error = '';
 var iteration = 0;
 var indent_level = 0;
 var increaseIndent = function() {
@@ -44,19 +44,6 @@ var parseChildNodes = function(nodes) {
 }
 
 var parseNode = function(node) {
-  iteration = iteration + 1;
-
-  if (process.argv[3] == "--debug")
-  {
-    sys.puts(iteration + " " + node.type);
-    p(node);
-  } 
-
-  if (process.argv[3] == "--ilevel")
-  {
-    sys.puts(iteration + " (" + indent_level + ") " +  node.type + " - " + node.name);
-  } 
-
   switch (node.type) {
     case "Program":
       if (node.elements) { parseChildNodes(node.elements); }
