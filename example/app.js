@@ -21,20 +21,42 @@ var addToOut = function(out) {
   output += out;
 }
 
+/* calls parseNode on a collection of nodes (statements, elements, properties, clauses) */
 var parseChildNodes = function(nodes) {
   for(var i = 0; i < nodes.length; ++i) {
+        /* indenter */
         _node = nodes[i];
         if(_node.type != "BreakStatement") {
         for(var c = 0; c < indent_level; ++c) {
             addToOut("  ");
           }
+        } /* some logic */
+        is_last_statement = (i < nodes.length -1);
+        is_just_var = (is_last_statement && (_node.type == "Variable")); /* variables are not declared this way in coffee */
+        is_break = (_node.type == "BreakStatement"); /* not used in coffee */
+        if (!(is_just_var) && !(is_break)) parseNode(_node);
+        /* it doesnt wake up from the above until the line is over */
+        if (is_last_statement && !(is_break) && !(is_just_var))
+        { 
+        addToOut("\n");
         }
-        parseNode(_node);
-        if ((i < nodes.length -1) && (_node.type != "BreakStatement")) addToOut("\n");
       }
 }
 
 var parseNode = function(node) {
+  iteration = iteration + 1;
+
+  if (process.argv[3] == "--debug")
+  {
+    sys.puts(iteration + " " + node.type);
+    p(node);
+  } 
+
+  if (process.argv[3] == "--ilevel")
+  {
+    sys.puts(iteration + " (" + indent_level + ") " +  node.type + " - " + node.name);
+  } 
+
   switch (node.type) {
     case "Program":
       if (node.elements) { parseChildNodes(node.elements); }
@@ -72,6 +94,7 @@ var parseNode = function(node) {
     case "CaseClause":
       addToOut("when ");
       parseNode(node.selector);
+      /* 2 is the minimum because break; is a statement too */
       if (node.statements.length > 2 || node.statements.length == 1)
       {
         addToOut("\n");
@@ -84,6 +107,7 @@ var parseNode = function(node) {
         addToOut(" then ");
         if (node.statements) parseNode(node.statements[0]);
       }
+
       break;
     case "DefaultClause":
       addToOut("else ");
@@ -105,21 +129,24 @@ var parseNode = function(node) {
     case "LabelledStatement":
       break;
     case "IfStatement":
+      /* condition */
       if(node.condition.operator != "!")
       {
         addToOut("if ");
         parseNode(node.condition);
       } else {
         addToOut("unless ");
+        /* skip next node, it's "not" */
         parseNode(node.condition.expression);
       }
       addToOut("\n");
+      /* statements */
       increaseIndent();
       if (node.ifStatement.statements) { parseChildNodes(node.ifStatement.statements); }
       decreaseIndent();
       if(node.elseStatement != null) {
       addToOut("\n");
-      addToOut("else");
+      addToOut("else"); /* limitation: javascript.pegjs doesnt know else if */
       addToOut("\n");
       increaseIndent();
       if (node.elseStatement.statements) { parseChildNodes(node.elseStatement.statements); }
@@ -127,13 +154,14 @@ var parseNode = function(node) {
       }
       break;
     case "ForStatement":
+      /* converts to while because this mode is unsupported */
       parseNode(node.initializer);
       addToOut("\n");
       addToOut("while ");
       parseNode(node.test);
       addToOut("\n");
       increaseIndent();
-      parseChildNodes([node.counter]);
+      parseChildNodes([node.counter]); /* bad hack to get indent level lul */
       decreaseIndent();
       if(node.statement) parseNode(node.statement);
       break;
@@ -178,13 +206,15 @@ var parseNode = function(node) {
     case "PropertyAccess":
       parseNode(node.base);
       if(node.base.type != "This") addToOut(".");
-      addToOut(node.name.trim());
+      /* addToOut(node.name.trim()); */
+      parseNode(node.name);
       break;
     case "BinaryExpression":
       parseNode(node.left);
       addToOut(" ");
       switch (node.operator)
       {
+      /* switch to "not" and "isnt" or something here */
       case "!":
         addToOut("not ");
         break;
@@ -250,6 +280,7 @@ var parseNode = function(node) {
       if (node.name.indexOf("var") == -1) {
         addToOut(node.name.trim());
       } else {
+        /* -5 because of 4 for "var " and 1 for " " after */
         addToOut(node.name.substr(4, node.name.length - 4).trim());
       }
       break;
@@ -304,8 +335,7 @@ var parseNode = function(node) {
         addToOut("no");
       }
     break;      
-  }
-  
+  }  
 }
 
 /*

@@ -1,4 +1,5 @@
-#!/usr/bin/env node
+/*#!/usr/bin/env node*/
+/* uncomment the above to enable ./ */
 var parser = require('./parser').parser;
 var sys = require('sys');
 var fs = require('fs');
