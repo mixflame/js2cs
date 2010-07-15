@@ -1,18 +1,22 @@
+#!/usr/bin/env node
 var parser = require('./parser').parser;
 var sys = require('sys');
 var fs = require('fs');
 
-/* give us trim */
-String.prototype.trim = function ()
-{
-    return this.replace(/^\s*/, "").replace(/\s*$/, "");
-}
-
 /* object inspect method */
 var p = function(obj) { sys.puts(sys.inspect(obj, true, 100)); }
 
+/* the missing trim method */
+String.prototype.trim = function () { return this.replace(/^\s*/, "").replace(/\s*$/, ""); }
+
 /* read input (sync) */
+try {
 var string_raw_js = fs.readFileSync(process.argv[2], "utf8");
+} catch(e) {
+sys.log("Failed to read input file.. Did you specify one?");
+process.exit(1);
+}
+
 
 /* parse section */
 try{
@@ -45,10 +49,13 @@ var parseChildNodes = function(nodes) {
         for(var c = 0; c < indent_level; ++c) {
             addToOut("  ");
           }
-        }
-        parseNode(_node);
+        } /* some logic */
+        is_last_statement = (i < nodes.length -1);
+        is_just_var = (is_last_statement && (_node.type == "Variable")); /* variables are not declared this way in coffee */
+        is_break = (_node.type == "BreakStatement"); /* not used in coffee */
+        if (!(is_just_var) && !(is_break)) parseNode(_node);
         /* it doesnt wake up from the above until the line is over */
-        if ((i < nodes.length -1) && (_node.type != "BreakStatement"))
+        if (is_last_statement && !(is_break) && !(is_just_var))
         { 
         addToOut("\n");
         }
@@ -219,7 +226,8 @@ var parseNode = function(node) {
     case "PropertyAccess":
       parseNode(node.base);
       if(node.base.type != "This") addToOut(".");
-      addToOut(node.name.trim());
+      /* addToOut(node.name.trim()); */
+      parseNode(node.name);
       break;
     case "BinaryExpression":
       parseNode(node.left);
