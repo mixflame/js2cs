@@ -28,7 +28,7 @@ Known Limitation
 
 * Comma operator (,) compiles to \n. Not supported in CoffeeScript.
 
-
+* Might mess up near RegularExpressionLiteral in chained FunctionCall sometimes. (PEGjs bug?)
 
 --
 Jonathan Silverman ("jsilver")

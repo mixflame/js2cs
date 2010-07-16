@@ -12,7 +12,9 @@ sys.puts(sys.inspect(obj, true, 100));
 /* the missing trim method */
 String.prototype.trim = function()
 {
-return this.replace(/^\s*/, "").replace(/\s*$/, "");
+var str_to_return = this.replace(/^\s*/, "");
+str_to_return = str_to_return.replace(/\s*$/, "");
+return str_to_return;
 }
 
 /* read input (sync) */
