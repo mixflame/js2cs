@@ -1,14 +1,16 @@
 /*#!/usr/bin/env node*/
-/* uncomment the above to enable ./ */
 var parser = require('./parser').parser;
 var sys = require('sys');
 var fs = require('fs');
 
 /* object inspect method */
-var p = function(obj) { sys.puts(sys.inspect(obj, true, 100)); }
+var p = function(obj)
+{
+sys.puts(sys.inspect(obj, true, 100));
+}
 
 /* the missing trim method */
-String.prototype.trim = function ()
+String.prototype.trim = function()
 {
 return this.replace(/^\s*/, "").replace(/\s*$/, "");
 }
@@ -45,26 +47,27 @@ var addToOut = function(out) {
   output += out;
 }
 
-/* calls parseNode on a collection of nodes (statements, elements, properties, clauses) */
+/* calls parseNode on a collection of child nodes (statements, elements, properties, clauses) */
 var parseChildNodes = function(nodes) {
-  for(var i = 0; i < nodes.length; ++i) {
-        /* indenter */
+  for(var i = 0; i < nodes.length; i++) {
+        /* some logic */
         _node = nodes[i];
-        if(_node.type != "BreakStatement") {
+        is_last_statement = ((i < nodes.length -1));
+        is_just_var = (is_last_statement && (_node.type == "Variable")); /* variables are not declared this way in coffee */
+        is_break = (_node.type == "BreakStatement"); /* not used in coffee */
+        /* indenter */
+        if(!(is_break)) {
         for(var c = 0; c < indent_level; ++c) {
             addToOut("  ");
           }
-        } /* some logic */
-        is_last_statement = (i < nodes.length -1);
-        is_just_var = (is_last_statement && (_node.type == "Variable")); /* variables are not declared this way in coffee */
-        is_break = (_node.type == "BreakStatement"); /* not used in coffee */
+        }
         if (!(is_just_var) && !(is_break))
         {
         parseNode(_node);
         }
-        /* it doesnt wake up from the above until the line is over */
+        /* line breaker */
         if (is_last_statement && !(is_break) && !(is_just_var))
-        { 
+        {
         addToOut("\n");
         }
       }
@@ -102,7 +105,11 @@ var parseNode = function(node) {
         addToOut("(");
         for(var i = 0; i < node.params.length; ++i)
         {
+          /* this tokenizer is probably broken. node.params node should be parsed. */
+          /*
           addToOut(node.params[i]);
+          */
+          parseNode(node.params[i]);
           if (i < node.params.length - 1) 
           {
           addToOut(", ");
@@ -265,15 +272,23 @@ var parseNode = function(node) {
       parseNode(node.right);
       break;
     case("PropertyAssignment"):
-      addToOut(node.name);
+      /*addToOut(node.name);*/
+      parseNode(node.name);
       addToOut(": ");
       parseNode(node.value);
       break;
     case("PropertyAccess"):
       parseNode(node.base);
       if(node.base.type != "This") addToOut(".");
-      /* addToOut(node.name.trim()); */
-      parseNode(node.name);
+      
+      if (node.name.type)
+      {
+        parseNode(node.name);
+      }
+      else if (node.name.type == undefined || node.name.type == "null")
+      {
+        addToOut(node.name.trim());
+      }
       break;
     case("BinaryExpression"):
       parseNode(node.left);

@@ -1,9 +1,8 @@
-/* this is wrong */
-var test;
-var anything = 'test';
-var thing;
-var oh_shit = 1;
-oh = 1;
-
-
+/* the missing trim method */
+String.prototype.trim = function()
+{
+var str_to_return = this.replace(/^\s*/, "");
+str_to_return = str_to_return.replace(/\s*$/, "");
+return str_to_return;
+}
 
