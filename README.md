@@ -4,7 +4,7 @@ Usage
 [CoffeeScript](http://www.coffeescript.com)
 
 <code>
-node js2cs.js input.js --convert
+node js2cs.js <run_mode> file_to_convert
 </code>
 
 Options: --debug, --ilevel, --convert
@@ -22,21 +22,19 @@ Known Limitations
 
 * Limited by PEG.js's ability to read your syntax. You may (will) have to refactor it to use this tool.
 
-* No support for LabelledStatement. (label: statement) Used with break label; (doesn't seem like a huge problem to me. never seen this used.)
+* No support for LabelledStatement. Only used with BreakStatement (break) which is not used in Coffee.
 
-* Untested and probably broken in many ways.
+* Untested. Not symbol-for-symbol, token-for-token.
 
 * For Statements are turned into While statements in Coffee because Coffee's For is one-way to JavaScript (can't be translated back to that.)
 
 * Comma operator (,) compiles to \n. Not supported in CoffeeScript.
 
-* Might mess up near RegularExpressionLiteral in chained FunctionCall sometimes. (PEGjs bug?)
-
 * Postfix expression like ++i is not handled yet.
 
 * Else if is NOT supported by the PEGjs grammar. You can use if { stuff; } else { if() { stuff; } }.
 
-* No one line if statements. Ever. Don't try it. You must have a block or you will not be indented by the indenter.
+* No one line if statements.
 
 --
 Jonathan Silverman ("jsilver")
