@@ -19,10 +19,22 @@ str_to_return = str_to_return.replace(/\s*$/, "");
 return str_to_return;
 }
 
+/* argument section */
+var _runmode;
+var _filename = process.argv[process.argv.length - 1];
+if(process.argv[process.argv.length - 2].substr(0,2) == "--")
+{
+_runmode = process.argv[process.argv.length - 2];
+}
+else
+{
+_runmode = "--convert";
+}
+
 /* read input (sync) */
 try
 {
-var string_raw_js = fs.readFileSync(process.argv[process.argv.length - 1], "utf8");
+var string_raw_js = fs.readFileSync(_filename, "utf8");
 } catch(e) {
 sys.log("Failed to read input file.. Did you specify one?");
 process.exit(1);
@@ -100,13 +112,13 @@ var parseChildNodes = function(nodes) {
 var parseNode = function(node) {
   iteration = iteration + 1;
 
-  if(process.argv[process.argv.length - 2] == "--debug")
+  if(_runmode == "--debug")
   {
     sys.puts(iteration + " " + node.type);
     p(node);
   } 
 
-  if(process.argv[process.argv.length - 2] == "--ilevel")
+  if(_runmode == "--ilevel")
   {
     sys.puts(iteration + " (" + indent_level + ") " +  node.type + " - " + node.name);
   } 
@@ -533,14 +545,14 @@ if */
 parseNode(ast);
 
 /* output section */
-if(process.argv[process.argv.length - 2] == "--convert" || process.argv[process.argv.length - 2] == null)
+if(_runmode == "--convert")
 {
 
   sys.puts(removeBlankLines(output));
 }
 else
 {
-if(process.argv[process.argv.length - 2] == "--showjs")
+if(_runmode == "--showjs")
 {
   sys.puts("Original JavaScript: ");
   sys.puts(string_raw_js);

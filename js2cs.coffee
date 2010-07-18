@@ -9,8 +9,13 @@ String['prototype']['trim']: ->
   str_to_return: @replace(/^\s*/, "")
   str_to_return: str_to_return['replace'](/\s*$/, "")
   return str_to_return
+_filename: process['argv'][process['argv']['length'] - 1]
+if (process['argv'][process['argv']['length'] - 2]['substr'](0, 2) == "--")
+  _runmode: process['argv'][process['argv']['length'] - 2]
+else
+  _runmode: "--convert"
 try
-  string_raw_js: fs['readFileSync'](process['argv'][process['argv']['length'] - 1], "utf8")
+  string_raw_js: fs['readFileSync'](_filename, "utf8")
 catch e
   sys['log']("Failed to read input file.. Did you specify one?")
   process['exit'](1)
@@ -54,10 +59,10 @@ parseChildNodes: (nodes)->
     addToOut("\n")
 parseNode: (node)->
   iteration: iteration + 1
-  if (process['argv'][process['argv']['length'] - 2] == "--debug")
+  if (_runmode == "--debug")
     sys['puts'](iteration + " " + node['type'])
     p(node)
-  if (process['argv'][process['argv']['length'] - 2] == "--ilevel")
+  if (_runmode == "--ilevel")
     sys['puts'](iteration + " (" + indent_level + ") " + node['type'] + " - " + node['name'])
   switch node['type']
     when "Program"
@@ -298,10 +303,10 @@ parseNode: (node)->
         if (node['value'] == no)
           addToOut("no")
 parseNode(ast)
-if (process['argv'][process['argv']['length'] - 2] == "--convert" or process['argv'][process['argv']['length'] - 2] == null)
+if (_runmode == "--convert")
   sys['puts'](removeBlankLines(output))
 else
-  if (process['argv'][process['argv']['length'] - 2] == "--showjs")
+  if (_runmode == "--showjs")
     sys['puts']("Original JavaScript: ")
     sys['puts'](string_raw_js)
     sys['puts']("Generated CoffeeScript: ")
