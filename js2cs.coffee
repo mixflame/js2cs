@@ -1,44 +1,44 @@
-var parser: require "./parser".parser
-var sys: require "sys"
-var fs: require "fs"
-var p: (obj)->
-  var obj_inspect: sys.inspect obj, yes, 100
+parser: require "./parser".parser
+sys: require "sys"
+fs: require "fs"
+p: (obj)->
+  obj_inspect: sys.inspect obj, yes, 100
   sys.puts obj_inspect
 String.prototype.trim: ->
-  var str_to_return: @replace /^\s*/, ""
+  str_to_return: @replace /^\s*/, ""
   str_to_return: str_to_return.replace /\s*$/, ""
   return str_to_return
 try
-  var string_raw_js: fs.readFileSync process.argv[2], "utf8"
+  string_raw_js: fs.readFileSync process.argv[2], "utf8"
 catch e
   sys.log "Failed to read input file.. Did you specify one?"
   process.exit 1
 try
-  var ast: parser.parse string_raw_js
+  ast: parser.parse string_raw_js
 catch e
   sys.log e.name + " on line " + e.line + " on column " + e.column + ": " + e.message
   process.exit 1
-var output: ""
-var iteration: 0
-var indent_level: 0
-var increaseIndent: ->
+output: ""
+iteration: 0
+indent_level: 0
+increaseIndent: ->
   indent_level: indent_level + 1
-var decreaseIndent: ->
+decreaseIndent: ->
   indent_level: indent_level - 1
-var indent: ->
-  var c: 0
+indent: ->
+  c: 0
   while c < indent_level
     c = c + 1
     addToOut "  "
-var addToOut: (out)->
+addToOut: (out)->
   output: out
-var removeBlankLines: (out)->
-  var return_me: out.replace /\n\n/g, "\n"
+removeBlankLines: (out)->
+  return_me: out.replace /\n\n/g, "\n"
   while return_me.indexOf "\n\n" > 0
       return_me: return_me.replace /\n\n/g, "\n"
   return return_me
-var parseChildNodes: (nodes)->
-  var i: 0
+parseChildNodes: (nodes)->
+  i: 0
   while i < nodes.length
     i = i + 1
     _node: nodes.i
@@ -51,7 +51,7 @@ var parseChildNodes: (nodes)->
     if not is_just_var and not is_break and not is_labelled_statement
       parseNode _node
     addToOut "\n"
-var parseNode: (node)->
+parseNode: (node)->
   iteration: iteration + 1
   if process.argv[3] == "--debug"
     sys.puts iteration + " " + node.type
@@ -67,7 +67,7 @@ var parseNode: (node)->
     when "Function"
       if node.params.length > 0
         addToOut "("
-        var i: 0
+        i: 0
         while i < node.params.length
           i = i + 1
           addToOut node.params.i
@@ -180,8 +180,8 @@ var parseNode: (node)->
     when "PropertyAccess"
       parseNode node.base
       if node.name.type
-        var node_dot_name_is_numeric_literal: node.name.type == "NumericLiteral"
-        var node_dot_name_is_string_literal: node.name.type == "StringLiteral"
+        node_dot_name_is_numeric_literal: node.name.type == "NumericLiteral"
+        node_dot_name_is_string_literal: node.name.type == "StringLiteral"
         if node.base.type != "This" and not node_dot_name_is_numeric_literal and not node_dot_name_is_string_literal
           addToOut "."
         if node_dot_name_is_numeric_literal or node_dot_name_is_string_literal
@@ -241,23 +241,23 @@ var parseNode: (node)->
           addToOut " - 1"
       addToOut "\n"
     when "Variable"
-      unless node.name.substr 1, 3 == "var"
+      unless node.name.substr 0, 3 == "var"
         addToOut node.name.trim
       else
-        if node.name.substr 1, 3 == "var"
+        if node.name.substr 0, 3 == "var"
           addToOut 
     when "FunctionCall"
       parseNode node.name
       if node.arguments.length > 0
         addToOut " "
-        var i: 0
+        i: 0
         while i < node.arguments.length
           i = i + 1
           parseNode node.arguments.i
           if i < node.arguments.length - 1
             addToOut ", "
     when "StringLiteral"
-      var escapedValue: node.value.replace /\n/g, "\n"
+      escapedValue: node.value.replace /\n/g, "\n"
       addToOut """ + escapedValue + """
     when "NumericLiteral"
       addToOut node.value
@@ -270,7 +270,7 @@ var parseNode: (node)->
     when "ArrayLiteral"
       if node.elements.length > 0
         addToOut "["
-        var i: 0
+        i: 0
         while i < node.elements.length
           i = i + 1
           parseNode node.elements.i

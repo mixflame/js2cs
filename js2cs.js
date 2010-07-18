@@ -401,13 +401,13 @@ if */
       addToOut("\n");
       break;
     case("Variable"):
-      if(!(node.name.substr(1, 3) == "var"))
+      if(!(node.name.substr(0, 3) == "var"))
       {
         addToOut(node.name.trim());
       }
       else
       {
-      if(node.name.substr(1, 3) == "var")
+      if(node.name.substr(0, 3) == "var")
       {
         /* -5 because of 4 for "var " and 1 for " " after */
         addToOut(node.name.substr(4, node.name.length - 4).trim());
