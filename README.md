@@ -1,6 +1,8 @@
 Usage
 ----------
 
+CoffeeScript: http://www.coffeescript.com
+
 <code>
 node js2cs.js input.js --convert
 </code>
@@ -15,7 +17,7 @@ Options: --debug, --ilevel, --convert
 
 Browser demo is in /example
 
-Known Limitation
+Known Limitations
 --------------------
 
 * Limited by PEG.js's ability to read your syntax. You may (will) have to refactor it to use this tool.
