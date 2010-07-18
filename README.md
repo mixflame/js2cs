@@ -1,7 +1,7 @@
 Usage
 ----------
 
-CoffeeScript: http://www.coffeescript.com
+[CoffeeScript](http://www.coffeescript.com)
 
 <code>
 node js2cs.js input.js --convert

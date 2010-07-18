@@ -47,42 +47,42 @@ parseChildNodes: (nodes)->
     is_just_var: is_last_statement and _node['type'] == "Variable"
     is_break: _node['type'] == "BreakStatement"
     is_labelled_statement: _node['type'] == "LabelledStatement"
-    if not is_break and not is_labelled_statement
+    if (not is_break and not is_labelled_statement)
       indent
-    if not is_just_var and not is_break and not is_labelled_statement
+    if (not is_just_var and not is_break and not is_labelled_statement)
       parseNode(_node)
     addToOut("\n")
 parseNode: (node)->
   iteration: iteration + 1
-  if process['argv'][process['argv']['length'] - 2] == "--debug"
+  if (process['argv'][process['argv']['length'] - 2] == "--debug")
     sys['puts'](iteration + " " + node['type'])
     p(node)
-  if process['argv'][process['argv']['length'] - 2] == "--ilevel"
+  if (process['argv'][process['argv']['length'] - 2] == "--ilevel")
     sys['puts'](iteration + " (" + indent_level + ") " + node['type'] + " - " + node['name'])
   switch node['type']
     when "Program"
-      if node['elements']
+      if (node['elements'])
         parseChildNodes(node['elements'])
     when "This"
       addToOut("@")
     when "Function"
-      if node['params']['length'] > 0
+      if (node['params']['length'] > 0)
         addToOut("(")
         i: 0
         while i < node['params']['length']
           i = i + 1
           addToOut(node['params'][i])
-          if i < node['params']['length'] - 1
+          if (i < node['params']['length'] - 1)
             addToOut(", ")
         addToOut(")")
       addToOut("->\n")
       increaseIndent
-      if node['elements']
+      if (node['elements'])
         parseChildNodes(node['elements'])
       decreaseIndent
     when "Block"
       increaseIndent
-      if node['statements']
+      if (node['statements'])
         parseChildNodes(node['statements'])
       decreaseIndent
     when "SwitchStatement"
@@ -97,40 +97,41 @@ parseNode: (node)->
       parseNode(node['selector'])
       addToOut("\n")
       increaseIndent
-      if node['statements']
+      if (node['statements'])
         parseChildNodes(node['statements'])
       decreaseIndent
     when "DefaultClause"
       addToOut("else ")
-      if node['statements']['length'] > 1
+      if (node['statements']['length'] > 1)
         addToOut("\n")
         increaseIndent
-        if node['statements']
+        if (node['statements'])
           parseChildNodes(node['statements'])
         decreaseIndent
       else
-        if node['statements']['length'] == 1
-          if node['statements']
+        if (node['statements']['length'] == 1)
+          if (node['statements'])
             parseNode(node['statements'][0])
     when "IfStatement"
-      if node['condition']['operator'] != "!"
-        addToOut("if ")
+      if (node['condition']['operator'] != "!")
+        addToOut("if (")
         parseNode(node['condition'])
+        addToOut(")")
       else
         addToOut("unless ")
         parseNode(node['condition']['expression'])
       addToOut("\n")
       increaseIndent
-      if node['ifStatement']['statements']
+      if (node['ifStatement']['statements'])
         parseChildNodes(node['ifStatement']['statements'])
       decreaseIndent
-      if node['elseStatement'] != null
+      if (node['elseStatement'] != null)
         addToOut("\n")
         indent
         addToOut("else")
         addToOut("\n")
         increaseIndent
-        if node['elseStatement']['statements']
+        if (node['elseStatement']['statements'])
           parseChildNodes(node['elseStatement']['statements'])
         decreaseIndent
     when "ForStatement"
@@ -144,26 +145,26 @@ parseNode: (node)->
       indent
       parseNode(node['counter'])
       decreaseIndent
-      if node['statement']
+      if (node['statement'])
         parseNode(node['statement'])
     when "WhileStatement"
       addToOut("while ")
       parseNode(node['condition'])
       addToOut("\n")
-      if node['statement']
+      if (node['statement'])
         parseNode(node['statement'])
     when "TryStatement"
       addToOut("try\n")
       parseNode(node['block'])
       addToOut("\n")
-      if node["catch"]
+      if (node["catch"])
         addToOut("catch ")
         parseNode(node["catch"])
-      if node["finally"]
+      if (node["finally"])
         addToOut("finally\n")
         parseNode(node["finally"])
     when "Catch"
-      if node['identifier']
+      if (node['identifier'])
         addToOut(node['identifier'])
       addToOut("\n")
       parseNode(node['block'])
@@ -180,9 +181,9 @@ parseNode: (node)->
       parseNode(node['value'])
     when "PropertyAccess"
       parseNode(node['base'])
-      if node['name']['type']
-        if node['base']['type'] != "This"
-          if node['name']['type'] != "FunctionCall"
+      if (node['name']['type'])
+        if (node['base']['type'] != "This")
+          if (node['name']['type'] != "FunctionCall")
             addToOut("[")
             parseNode(node['name'])
             addToOut("]")
@@ -192,11 +193,11 @@ parseNode: (node)->
         else
           parseNode(node['name'])
       else
-        if node['name']['type'] == undefined or node['name']['type'] == "null"
-          if node['base']['type'] != "This"
+        if (node['name']['type'] == undefined or node['name']['type'] == "null")
+          if (node['base']['type'] != "This")
             addToOut("['")
           addToOut(node['name']['trim'])
-          if node['base']['type'] != "This"
+          if (node['base']['type'] != "This")
             addToOut("']")
     when "BinaryExpression"
       parseNode(node['left'])
@@ -248,17 +249,17 @@ parseNode: (node)->
       unless node['name']['substr'](0, 3) == "var"
         addToOut(node['name']['trim'])
       else
-        if node['name']['substr'](0, 3) == "var"
+        if (node['name']['substr'](0, 3) == "var")
           addToOut()
     when "FunctionCall"
       parseNode(node['name'])
-      if node['arguments']['length'] > 0
+      if (node['arguments']['length'] > 0)
         addToOut("(")
         i: 0
         while i < node['arguments']['length']
           i = i + 1
           parseNode(node['arguments'][i])
-          if i < node['arguments']['length'] - 1
+          if (i < node['arguments']['length'] - 1)
             addToOut(", ")
         addToOut(")")
     when "StringLiteral"
@@ -273,34 +274,34 @@ parseNode: (node)->
     when "NullLiteral"
       addToOut("null")
     when "ArrayLiteral"
-      if node['elements']['length'] > 0
+      if (node['elements']['length'] > 0)
         addToOut("[")
         i: 0
         while i < node['elements']['length']
           i = i + 1
           parseNode(node['elements'][i])
-          if i < node['elements']['length'] - 1
+          if (i < node['elements']['length'] - 1)
             addToOut(", ")
         addToOut("]")
     when "ObjectLiteral"
-      if node['properties']['length'] > 0
+      if (node['properties']['length'] > 0)
         addToOut("{\n")
         increaseIndent
-        if node['properties']
+        if (node['properties'])
           parseChildNodes(node['properties'])
         decreaseIndent
         addToOut("\n}")
     when "BooleanLiteral"
-      if node['value'] == yes
+      if (node['value'] == yes)
         addToOut("yes")
       else
-        if node['value'] == no
+        if (node['value'] == no)
           addToOut("no")
 parseNode(ast)
-if process['argv'][process['argv']['length'] - 2] == "--convert" or process['argv'][process['argv']['length'] - 2] == null
+if (process['argv'][process['argv']['length'] - 2] == "--convert" or process['argv'][process['argv']['length'] - 2] == null)
   sys['puts'](removeBlankLines(output))
 else
-  if process['argv'][process['argv']['length'] - 2] == "--showjs"
+  if (process['argv'][process['argv']['length'] - 2] == "--showjs")
     sys['puts']("Original JavaScript: ")
     sys['puts'](string_raw_js)
     sys['puts']("Generated CoffeeScript: ")

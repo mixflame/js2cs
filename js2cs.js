@@ -220,8 +220,9 @@ var parseNode = function(node) {
       /* condition */
       if(node.condition.operator != "!")
       {
-        addToOut("if ");
+        addToOut("if (");
         parseNode(node.condition);
+        addToOut(")");
       }
       else
       {
