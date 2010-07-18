@@ -52,9 +52,16 @@ var indent = function()
               addToOut("  ");
   }
 }
-
 var addToOut = function(out) {
   output += out;
+}
+var removeBlankLines = function(out) {
+  var return_me = out.replace(/\n\n/g, "\n");
+  while (return_me.indexOf("\n\n") > 0)
+  {
+  return_me = return_me.replace(/\n\n/g, "\n");
+  }
+  return return_me;
 }
 
 /* calls parseNode on a collection of child nodes (statements, elements, properties, clauses) */
@@ -69,12 +76,12 @@ var parseChildNodes = function(nodes) {
         is_labelled_statement = (_node.type == "LabelledStatement");
         /* indenter */
         
-        if(!(is_break)) {
+        if(!(is_break) && !(is_labelled_statement)) {
           indent();
         }
         
         /* token parser */
-        if(!(is_just_var) && !(is_break))
+        if(!(is_just_var) && !(is_break) && !(is_labelled_statement))
         {
         parseNode(_node);
         }
@@ -159,16 +166,18 @@ var parseNode = function(node) {
     case("CaseClause"):
       addToOut("when ");
       parseNode(node.selector);
-      /* 2 is the minimum because break; is a statement too */
+      /* 2 is the minimum because break; is a statement too 
       if((node.statements.length > 2) || (node.statements.length == 1))
       {
-        addToOut("\n");
-        increaseIndent();
-        if(node.statements)
-        {
-        parseChildNodes(node.statements);
-        }
-        decreaseIndent();
+      */
+      addToOut("\n");
+      increaseIndent();
+      if(node.statements)
+      {
+      parseChildNodes(node.statements);
+      }
+      decreaseIndent();
+      /*
       }
       else
       {
@@ -181,6 +190,7 @@ var parseNode = function(node) {
           }
         }
       }
+      */
       break;
     case("DefaultClause"):
       addToOut("else ");
@@ -198,7 +208,6 @@ var parseNode = function(node) {
       {
         if(node.statements.length == 1)
         {
-          addToOut(" then ");
           if(node.statements) 
           {
           parseNode(node.statements[0]);
@@ -250,7 +259,6 @@ if */
       parseNode(node.test);
       addToOut("\n");
       increaseIndent();
-      /*parseChildNodes([node.counter]);  bad hack to get indent level lul */
       indent();
       parseNode(node.counter); /* if possible do a test on the counter to see if it's ++i or i++ (they are different) */
       decreaseIndent();
@@ -393,13 +401,13 @@ if */
       addToOut("\n");
       break;
     case("Variable"):
-      if((node.name.indexOf("var") == -1))
+      if(!(node.name.substr(1, 3) == "var"))
       {
         addToOut(node.name.trim());
       }
       else
       {
-      if((node.name.indexOf("var") != -1))
+      if(node.name.substr(1, 3) == "var")
       {
         /* -5 because of 4 for "var " and 1 for " " after */
         addToOut(node.name.substr(4, node.name.length - 4).trim());
@@ -422,7 +430,8 @@ if */
       }
       break;
     case('StringLiteral'):
-      var escapedValue = node.value.replace("\n", "\\n");
+      /* be sure to escape any control characters you need here with \ */
+      var escapedValue = node.value.replace(/\n/g, "\\n");
       addToOut('"' + escapedValue + '"');
       break;
     case('NumericLiteral'):
@@ -487,7 +496,8 @@ parseNode(ast);
 /* output section */
 if(process.argv[3] == "--convert" || process.argv[3] == null)
 {
-  sys.puts(output);
+
+  sys.puts(removeBlankLines(output));
 }
 else
 {
