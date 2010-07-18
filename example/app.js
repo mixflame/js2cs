@@ -176,9 +176,8 @@ var parseNode = function(node) {
       /* condition */
       if(node.condition.operator != "!")
       {
-        addToOut("if (");
+        addToOut("if ");
         parseNode(node.condition);
-        addToOut(")");
       }
       else
       {
@@ -320,9 +319,9 @@ if */
       {
         if(node.name.type == undefined || node.name.type == "null")
         {
-          if(node.base.type != "This") { addToOut("['"); }
+          if(node.base.type != "This") { addToOut("."); }
           addToOut(node.name.trim());
-          if(node.base.type != "This") { addToOut("']"); }
+          /*if(node.base.type != "This") { addToOut("']"); }*/
         }
       }
          
@@ -337,6 +336,9 @@ if */
         addToOut("not ");
         break;
       case("==="):
+        addToOut("is ");
+        break;
+      case("=="):
         addToOut("is ");
         break;
       case("!=="):
@@ -410,9 +412,10 @@ if */
       break;
     case("FunctionCall"):
       parseNode(node.name);    
+      addToOut("(");
       if(node.arguments.length > 0)
       {
-        addToOut("(");
+        
         for(var i = 0; i < node.arguments.length; i++)
         {
           parseNode(node.arguments[i]);
@@ -420,9 +423,9 @@ if */
           { 
           addToOut(", ");
           }
-        }  
-        addToOut(")");    
+        }    
       }
+      addToOut(")");  
       break;
     case('StringLiteral'):
       /* be sure to escape any control characters you need here with \ */
