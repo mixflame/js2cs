@@ -1,1 +1,1 @@
-thing.thing.thing.thing;
+if(node.statement) parseNode(node.statement);

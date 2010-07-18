@@ -30,5 +30,11 @@ Known Limitation
 
 * Might mess up near RegularExpressionLiteral in chained FunctionCall sometimes. (PEGjs bug?)
 
+* Postfix expression like ++i is not handled yet.
+
+* Else if is NOT supported by the PEGjs grammar. You can use if { stuff; } else { if() { stuff; } }.
+
+* No one line if statements. Ever. Don't try it. You must have a block or you will not be indented by the indenter.
+
 --
 Jonathan Silverman ("jsilver")
