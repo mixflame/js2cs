@@ -1,5 +1,6 @@
 /*#!/usr/bin/env node*/
-var parser = require('./parser').parser;
+var pegjs = require('./parser');
+var parser = pegjs.parser;
 var sys = require('sys');
 var fs = require('fs');
 
@@ -21,7 +22,7 @@ return str_to_return;
 /* read input (sync) */
 try
 {
-var string_raw_js = fs.readFileSync(process.argv[2], "utf8");
+var string_raw_js = fs.readFileSync(process.argv[process.argv.length - 1], "utf8");
 } catch(e) {
 sys.log("Failed to read input file.. Did you specify one?");
 process.exit(1);
@@ -99,13 +100,13 @@ var parseChildNodes = function(nodes) {
 var parseNode = function(node) {
   iteration = iteration + 1;
 
-  if(process.argv[3] == "--debug")
+  if(process.argv[process.argv.length - 2] == "--debug")
   {
     sys.puts(iteration + " " + node.type);
     p(node);
   } 
 
-  if(process.argv[3] == "--ilevel")
+  if(process.argv[process.argv.length - 2] == "--ilevel")
   {
     sys.puts(iteration + " (" + indent_level + ") " +  node.type + " - " + node.name);
   } 
@@ -317,21 +318,57 @@ if */
       parseNode(node.base);
       if(node.name.type)
       {
+        /*
         var node_dot_name_is_numeric_literal = (node.name.type == "NumericLiteral");
         var node_dot_name_is_string_literal = (node.name.type == "StringLiteral");
-        if(node.base.type != "This" && !(node_dot_name_is_numeric_literal) && !(node_dot_name_is_string_literal)) { addToOut("."); }
+        if(node.base.type != "This" && !(node_dot_name_is_numeric_literal) && !(node_dot_name_is_string_literal)) { addToOut("."); } 
+        
         if(node_dot_name_is_numeric_literal || node_dot_name_is_string_literal) { addToOut("["); }
-        parseNode(node.name);
+        
+        if(node.base.type == "Variable")
+        {
+          addToOut(".");
+          parseNode(node.name);
+        }
+        else
+        { */
+         if(node.base.type != "This") {
+          if(node.name.type != "FunctionCall")
+          {
+            addToOut("[");
+            parseNode(node.name);
+            addToOut("]");
+          }
+          else
+          {
+            addToOut(".");
+            parseNode(node.name);
+          } 
+         }
+         else
+         {
+          parseNode(node.name);
+         }
+        /*
+         else
+         {
+          parseNode(node.name);
+         }
+        }
+        
         if(node_dot_name_is_numeric_literal || node_dot_name_is_string_literal) { addToOut("]"); }
+        */
       }
       else
       {
         if(node.name.type == undefined || node.name.type == "null")
         {
-          if(node.base.type != "This") { addToOut("."); }
+          if(node.base.type != "This") { addToOut("['"); }
           addToOut(node.name.trim());
+          if(node.base.type != "This") { addToOut("']"); }
         }
-      }      
+      }
+         
       break;
     case("BinaryExpression"):
       parseNode(node.left);
@@ -418,7 +455,7 @@ if */
       parseNode(node.name);    
       if(node.arguments.length > 0)
       {
-        addToOut(" ");
+        addToOut("(");
         for(var i = 0; i < node.arguments.length; i++)
         {
           parseNode(node.arguments[i]);
@@ -426,7 +463,8 @@ if */
           { 
           addToOut(", ");
           }
-        }      
+        }  
+        addToOut(")");    
       }
       break;
     case('StringLiteral'):
@@ -494,14 +532,14 @@ if */
 parseNode(ast);
 
 /* output section */
-if(process.argv[3] == "--convert" || process.argv[3] == null)
+if(process.argv[process.argv.length - 2] == "--convert" || process.argv[process.argv.length - 2] == null)
 {
 
   sys.puts(removeBlankLines(output));
 }
 else
 {
-if(process.argv[3] == "--showjs")
+if(process.argv[process.argv.length - 2] == "--showjs")
 {
   sys.puts("Original JavaScript: ");
   sys.puts(string_raw_js);

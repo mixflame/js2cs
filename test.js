@@ -1,1 +1,1 @@
-if(node.statement) parseNode(node.statement);
+process.argv[process.argv.length - 1];
