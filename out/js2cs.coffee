@@ -1,29 +1,29 @@
 pegjs: require("./parser")
-parser: pegjs['parser']
+parser: pegjs.parser
 sys: require("sys")
 fs: require("fs")
 p: (obj)->
-  obj_inspect: sys['inspect'](obj, yes, 100)
-  sys['puts'](obj_inspect)
-String['prototype']['trim']: ->
+  obj_inspect: sys.inspect(obj, yes, 100)
+  sys.puts(obj_inspect)
+String.prototype.trim: ->
   str_to_return: @replace(/^\s*/, "")
-  str_to_return: str_to_return['replace'](/\s*$/, "")
+  str_to_return: str_to_return.replace(/\s*$/, "")
   return str_to_return
-_filename: process['argv'][process['argv']['length'] - 1]
-if (process['argv'][process['argv']['length'] - 2]['substr'](0, 2) == "--")
-  _runmode: process['argv'][process['argv']['length'] - 2]
+_filename: process.argv[process.argv.length - 1]
+if process.argv[process.argv.length - 2].substr(0, 2) is "--"
+  _runmode: process.argv[process.argv.length - 2]
 else
   _runmode: "--convert"
 try
-  string_raw_js: fs['readFileSync'](_filename, "utf8")
+  string_raw_js: fs.readFileSync(_filename, "utf8")
 catch e
-  sys['log']("Failed to read input file.. Did you specify one?")
-  process['exit'](1)
+  sys.log("Failed to read input file.. Did you specify one?")
+  process.exit(1)
 try
-  ast: parser['parse'](string_raw_js)
+  ast: parser.parse(string_raw_js)
 catch e
-  sys['log'](e['name'] + " on line " + e['line'] + " on column " + e['column'] + ": " + e['message'])
-  process['exit'](1)
+  sys.log(e.name + " on line " + e.line + " on column " + e.column + ": " + e.message)
+  process.exit(1)
 output: ""
 iteration: 0
 indent_level: 0
@@ -39,178 +39,177 @@ indent: ->
 addToOut: (out)->
   output: out
 removeBlankLines: (out)->
-  return_me: out['replace'](/\n\n/g, "\n")
-  while(return_me['indexOf']("\n\n") > 0)
-      return_me: return_me['replace'](/\n\n/g, "\n")
+  return_me: out.replace(/\n\n/g, "\n")
+  while(return_me.indexOf("\n\n") > 0)
+      return_me: return_me.replace(/\n\n/g, "\n")
   return return_me
 parseChildNodes: (nodes)->
   i: 0
-  while i < nodes['length']
+  while i < nodes.length
     i = i + 1
     _node: nodes[i]
-    is_last_statement: i < nodes['length'] - 1
-    is_just_var: is_last_statement and _node['type'] == "Variable"
-    is_break: _node['type'] == "BreakStatement"
-    is_labelled_statement: _node['type'] == "LabelledStatement"
-    if (not is_break and not is_labelled_statement)
-      indent
-    if (not is_just_var and not is_break and not is_labelled_statement)
+    is_last_statement: i < nodes.length - 1
+    is_just_var: is_last_statement and _node.type is "Variable"
+    is_break: _node.type is "BreakStatement"
+    is_labelled_statement: _node.type is "LabelledStatement"
+    if not is_break and not is_labelled_statement
+      indent()
+    if not is_just_var and not is_break and not is_labelled_statement
       parseNode(_node)
     addToOut("\n")
 parseNode: (node)->
   iteration: iteration + 1
-  if (_runmode == "--debug")
-    sys['puts'](iteration + " " + node['type'])
+  if _runmode is "--debug"
+    sys.puts(iteration + " " + node.type)
     p(node)
-  if (_runmode == "--ilevel")
-    sys['puts'](iteration + " (" + indent_level + ") " + node['type'] + " - " + node['name'])
-  switch node['type']
+  if _runmode is "--ilevel"
+    sys.puts(iteration + " (" + indent_level + ") " + node.type + " - " + node.name)
+  switch node.type
     when "Program"
-      if (node['elements'])
-        parseChildNodes(node['elements'])
+      if node.elements
+        parseChildNodes(node.elements)
     when "This"
       addToOut("@")
     when "Function"
-      if (node['params']['length'] > 0)
+      if node.params.length > 0
         addToOut("(")
         i: 0
-        while i < node['params']['length']
+        while i < node.params.length
           i = i + 1
-          addToOut(node['params'][i])
-          if (i < node['params']['length'] - 1)
+          addToOut(node.params[i])
+          if i < node.params.length - 1
             addToOut(", ")
         addToOut(")")
       addToOut("->\n")
-      increaseIndent
-      if (node['elements'])
-        parseChildNodes(node['elements'])
-      decreaseIndent
+      increaseIndent()
+      if node.elements
+        parseChildNodes(node.elements)
+      decreaseIndent()
     when "Block"
-      increaseIndent
-      if (node['statements'])
-        parseChildNodes(node['statements'])
-      decreaseIndent
+      increaseIndent()
+      if node.statements
+        parseChildNodes(node.statements)
+      decreaseIndent()
     when "SwitchStatement"
       addToOut("switch ")
-      parseNode(node['expression'])
+      parseNode(node.expression)
       addToOut("\n")
-      increaseIndent
-      parseChildNodes(node['clauses'])
-      decreaseIndent
+      increaseIndent()
+      parseChildNodes(node.clauses)
+      decreaseIndent()
     when "CaseClause"
       addToOut("when ")
-      parseNode(node['selector'])
+      parseNode(node.selector)
       addToOut("\n")
-      increaseIndent
-      if (node['statements'])
-        parseChildNodes(node['statements'])
-      decreaseIndent
+      increaseIndent()
+      if node.statements
+        parseChildNodes(node.statements)
+      decreaseIndent()
     when "DefaultClause"
       addToOut("else ")
-      if (node['statements']['length'] > 1)
+      if node.statements.length > 1
         addToOut("\n")
-        increaseIndent
-        if (node['statements'])
-          parseChildNodes(node['statements'])
-        decreaseIndent
+        increaseIndent()
+        if node.statements
+          parseChildNodes(node.statements)
+        decreaseIndent()
       else
-        if (node['statements']['length'] == 1)
-          if (node['statements'])
-            parseNode(node['statements'][0])
+        if node.statements.length is 1
+          if node.statements
+            parseNode(node.statements[0])
     when "IfStatement"
-      if (node['condition']['operator'] != "!")
-        addToOut("if (")
-        parseNode(node['condition'])
-        addToOut(")")
+      if node.condition.operator != "!"
+        addToOut("if ")
+        parseNode(node.condition)
       else
         addToOut("unless ")
-        parseNode(node['condition']['expression'])
+        parseNode(node.condition.expression)
       addToOut("\n")
-      increaseIndent
-      if (node['ifStatement']['statements'])
-        parseChildNodes(node['ifStatement']['statements'])
-      decreaseIndent
-      if (node['elseStatement'] != null)
+      increaseIndent()
+      if node.ifStatement.statements
+        parseChildNodes(node.ifStatement.statements)
+      decreaseIndent()
+      if node.elseStatement != null
         addToOut("\n")
-        indent
+        indent()
         addToOut("else")
         addToOut("\n")
-        increaseIndent
-        if (node['elseStatement']['statements'])
-          parseChildNodes(node['elseStatement']['statements'])
-        decreaseIndent
+        increaseIndent()
+        if node.elseStatement.statements
+          parseChildNodes(node.elseStatement.statements)
+        decreaseIndent()
     when "ForStatement"
-      parseNode(node['initializer'])
+      parseNode(node.initializer)
       addToOut("\n")
-      indent
+      indent()
       addToOut("while ")
-      parseNode(node['test'])
+      parseNode(node.test)
       addToOut("\n")
-      increaseIndent
-      indent
-      parseNode(node['counter'])
-      decreaseIndent
-      if (node['statement'])
-        parseNode(node['statement'])
+      increaseIndent()
+      indent()
+      parseNode(node.counter)
+      decreaseIndent()
+      if node.statement
+        parseNode(node.statement)
     when "WhileStatement"
       addToOut("while ")
-      parseNode(node['condition'])
+      parseNode(node.condition)
       addToOut("\n")
-      if (node['statement'])
-        parseNode(node['statement'])
+      if node.statement
+        parseNode(node.statement)
     when "TryStatement"
       addToOut("try\n")
-      parseNode(node['block'])
+      parseNode(node.block)
       addToOut("\n")
-      if (node["catch"])
+      if node["catch"]
         addToOut("catch ")
         parseNode(node["catch"])
-      if (node["finally"])
+      if node["finally"]
         addToOut("finally\n")
         parseNode(node["finally"])
     when "Catch"
-      if (node['identifier'])
-        addToOut(node['identifier'])
+      if node.identifier
+        addToOut(node.identifier)
       addToOut("\n")
-      parseNode(node['block'])
+      parseNode(node.block)
       addToOut("\n")
     when "Finally"
-      parseNode(node['block'])
+      parseNode(node.block)
     when "AssignmentExpression"
-      parseNode(node['left'])
+      parseNode(node.left)
       addToOut(": ")
-      parseNode(node['right'])
+      parseNode(node.right)
     when "PropertyAssignment"
-      parseNode(node['name'])
+      parseNode(node.name)
       addToOut(": ")
-      parseNode(node['value'])
+      parseNode(node.value)
     when "PropertyAccess"
-      parseNode(node['base'])
-      if (node['name']['type'])
-        if (node['base']['type'] != "This")
-          if (node['name']['type'] != "FunctionCall")
+      parseNode(node.base)
+      if node.name.type
+        if node.base.type != "This"
+          if node.name.type != "FunctionCall"
             addToOut("[")
-            parseNode(node['name'])
+            parseNode(node.name)
             addToOut("]")
           else
             addToOut(".")
-            parseNode(node['name'])
+            parseNode(node.name)
         else
-          parseNode(node['name'])
+          parseNode(node.name)
       else
-        if (node['name']['type'] == undefined or node['name']['type'] == "null")
-          if (node['base']['type'] != "This")
-            addToOut("['")
-          addToOut(node['name']['trim'])
-          if (node['base']['type'] != "This")
-            addToOut("']")
+        if node.name.type is undefined or node.name.type is "null"
+          if node.base.type != "This"
+            addToOut(".")
+          addToOut(node.name.trim())
     when "BinaryExpression"
-      parseNode(node['left'])
+      parseNode(node.left)
       addToOut(" ")
-      switch node['operator']
+      switch node.operator
         when "!"
           addToOut("not ")
         when "==="
+          addToOut("is ")
+        when "=="
           addToOut("is ")
         when "!=="
           addToOut("isnt ")
@@ -221,94 +220,94 @@ parseNode: (node)->
         when ","
           addToOut("\n")
         else 
-          addToOut(node['operator'])
+          addToOut(node.operator)
           addToOut(" ")
-      parseNode(node['right'])
+      parseNode(node.right)
     when "UnaryExpression"
-      switch node['operator']
+      switch node.operator
         when "!"
           addToOut("not ")
-        else addToOut(node['operator'])
-      parseNode(node['expression'])
+        else addToOut(node.operator)
+      parseNode(node.expression)
     when "ConditionalExpression"
       addToOut("if ")
-      parseNode(node['condition'])
+      parseNode(node.condition)
       addToOut(" ")
-      parseNode(node['trueExpression'])
+      parseNode(node.trueExpression)
       addToOut(" else ")
-      parseNode(node['falseExpression'])
+      parseNode(node.falseExpression)
     when "PostfixExpression"
-      switch node['operator']
+      switch node.operator
         when "++"
-          parseNode(node['expression'])
+          parseNode(node.expression)
           addToOut(" = ")
-          parseNode(node['expression'])
+          parseNode(node.expression)
           addToOut(" + 1")
         when "--"
-          parseNode(node['expression'])
+          parseNode(node.expression)
           addToOut(" = ")
-          parseNode(node['expression'])
+          parseNode(node.expression)
           addToOut(" - 1")
       addToOut("\n")
     when "Variable"
-      unless node['name']['substr'](0, 3) == "var"
-        addToOut(node['name']['trim'])
+      unless node.name.substr(0, 3) is "var"
+        addToOut(node.name.trim())
       else
-        if (node['name']['substr'](0, 3) == "var")
+        if node.name.substr(0, 3) is "var"
           addToOut()
     when "FunctionCall"
-      parseNode(node['name'])
-      if (node['arguments']['length'] > 0)
-        addToOut("(")
+      parseNode(node.name)
+      addToOut("(")
+      if node.arguments.length > 0
         i: 0
-        while i < node['arguments']['length']
+        while i < node.arguments.length
           i = i + 1
-          parseNode(node['arguments'][i])
-          if (i < node['arguments']['length'] - 1)
+          parseNode(node.arguments[i])
+          if i < node.arguments.length - 1
             addToOut(", ")
-        addToOut(")")
+      addToOut(")")
     when "StringLiteral"
-      escapedValue: node['value']['replace'](/\n/g, "\n")
+      escapedValue: node.value.replace(/\n/g, "\n")
       addToOut(""" + escapedValue + """)
     when "NumericLiteral"
-      addToOut(node['value'])
+      addToOut(node.value)
     when "RegularExpressionLiteral"
       addToOut("/")
-      addToOut(node['body'])
-      addToOut("/" + node['flags'])
+      addToOut(node.body)
+      addToOut("/" + node.flags)
     when "NullLiteral"
       addToOut("null")
     when "ArrayLiteral"
-      if (node['elements']['length'] > 0)
+      if node.elements.length > 0
         addToOut("[")
         i: 0
-        while i < node['elements']['length']
+        while i < node.elements.length
           i = i + 1
-          parseNode(node['elements'][i])
-          if (i < node['elements']['length'] - 1)
+          parseNode(node.elements[i])
+          if i < node.elements.length - 1
             addToOut(", ")
         addToOut("]")
     when "ObjectLiteral"
-      if (node['properties']['length'] > 0)
+      if node.properties.length > 0
         addToOut("{\n")
-        increaseIndent
-        if (node['properties'])
-          parseChildNodes(node['properties'])
-        decreaseIndent
+        increaseIndent()
+        if node.properties
+          parseChildNodes(node.properties)
+        decreaseIndent()
         addToOut("\n}")
     when "BooleanLiteral"
-      if (node['value'] == yes)
+      if node.value is yes
         addToOut("yes")
       else
-        if (node['value'] == no)
+        if node.value is no
           addToOut("no")
 parseNode(ast)
-if (_runmode == "--convert")
-  sys['puts'](removeBlankLines(output))
+if _runmode is "--convert"
+  sys.puts(removeBlankLines(output))
 else
-  if (_runmode == "--showjs")
-    sys['puts']("Original JavaScript: ")
-    sys['puts'](string_raw_js)
-    sys['puts']("Generated CoffeeScript: ")
-    sys['puts'](output)
+  if _runmode is "--showjs"
+    sys.puts("Original JavaScript: ")
+    sys.puts(string_raw_js)
+    sys.puts("Generated CoffeeScript: ")
+    sys.puts(output)
 

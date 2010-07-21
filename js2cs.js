@@ -70,7 +70,7 @@ var addToOut = function(out) {
 }
 var removeBlankLines = function(out) {
   var return_me = out.replace(/\n\n/g, "\n");
-  while (return_me.indexOf("\n\n") > 0)
+  while (!(return_me.indexOf("\n\n") == -1))
   {
   return_me = return_me.replace(/\n\n/g, "\n");
   }
@@ -140,11 +140,7 @@ var parseNode = function(node) {
         addToOut("(");
         for(var i = 0; i < node.params.length; i++)
         {
-          /* this tokenizer is probably broken. node.params node should be parsed. */
-          
           addToOut(node.params[i]);
-          
-          /*arseNode(node.params[i]);*/
           if(i < node.params.length - 1) 
           {
           addToOut(", ");
@@ -179,10 +175,6 @@ var parseNode = function(node) {
     case("CaseClause"):
       addToOut("when ");
       parseNode(node.selector);
-      /* 2 is the minimum because break; is a statement too 
-      if((node.statements.length > 2) || (node.statements.length == 1))
-      {
-      */
       addToOut("\n");
       increaseIndent();
       if(node.statements)
@@ -190,20 +182,6 @@ var parseNode = function(node) {
       parseChildNodes(node.statements);
       }
       decreaseIndent();
-      /*
-      }
-      else
-      {
-        if(node.statements.length == 2)
-        {
-          addToOut(" then ");
-          if(node.statements) 
-          {
-          parseNode(node.statements[0]);
-          }
-        }
-      }
-      */
       break;
     case("DefaultClause"):
       addToOut("else ");
@@ -252,8 +230,7 @@ var parseNode = function(node) {
       if(node.elseStatement != null) {
       addToOut("\n");
       indent();
-      addToOut("else"); /* limitation: javascript.pegjs doesnt know else
-if */
+      addToOut("else");
       addToOut("\n");
       increaseIndent();
       if(node.elseStatement.statements) 
@@ -264,7 +241,6 @@ if */
       }
       break;
     case("ForStatement"):
-      /* converts to while because this mode is unsupported */
       parseNode(node.initializer);
       addToOut("\n");
       indent();
@@ -273,7 +249,7 @@ if */
       addToOut("\n");
       increaseIndent();
       indent();
-      parseNode(node.counter); /* if possible do a test on the counter to see if it's ++i or i++ (they are different) */
+      parseNode(node.counter);
       decreaseIndent();
       if(node.statement)
       {
@@ -290,7 +266,6 @@ if */
       }
       break;
     case("TryStatement"):
-      /* epic self translating challenge here */
       addToOut("try\n");
       parseNode(node.block);
       addToOut("\n");
@@ -321,7 +296,6 @@ if */
       parseNode(node.right);
       break;
     case("PropertyAssignment"):
-      /*addToOut(node.name);*/
       parseNode(node.name);
       addToOut(": ");
       parseNode(node.value);
@@ -330,20 +304,6 @@ if */
       parseNode(node.base);
       if(node.name.type)
       {
-        /*
-        var node_dot_name_is_numeric_literal = (node.name.type == "NumericLiteral");
-        var node_dot_name_is_string_literal = (node.name.type == "StringLiteral");
-        if(node.base.type != "This" && !(node_dot_name_is_numeric_literal) && !(node_dot_name_is_string_literal)) { addToOut("."); } 
-        
-        if(node_dot_name_is_numeric_literal || node_dot_name_is_string_literal) { addToOut("["); }
-        
-        if(node.base.type == "Variable")
-        {
-          addToOut(".");
-          parseNode(node.name);
-        }
-        else
-        { */
          if(node.base.type != "This") {
           if(node.name.type != "FunctionCall")
           {
@@ -361,15 +321,6 @@ if */
          {
           parseNode(node.name);
          }
-        /*
-         else
-         {
-          parseNode(node.name);
-         }
-        }
-        
-        if(node_dot_name_is_numeric_literal || node_dot_name_is_string_literal) { addToOut("]"); }
-        */
       }
       else
       {
@@ -377,39 +328,38 @@ if */
         {
           if(node.base.type != "This") { addToOut("."); }
           addToOut(node.name.trim());
-          /*if(node.base.type != "This") { addToOut("']"); }*/
         }
       }
          
       break;
     case("BinaryExpression"):
       parseNode(node.left);
-      addToOut(" ");
       switch(node.operator)
       {
       /* switch to "not" and "isnt" or something here */
       case("!"):
-        addToOut("not ");
+        addToOut(" not ");
         break;
       case("==="):
-        addToOut("is ");
+        addToOut(" is ");
         break;
       case("=="):
-        addToOut("is ");
+        addToOut(" is ");
         break;
       case("!=="):
-        addToOut("isnt ");
+        addToOut(" isnt ");
         break;
       case("&&"):
-        addToOut("and ");
+        addToOut(" and ");
         break;
       case("||"):
-        addToOut("or ");
+        addToOut(" or ");
         break;   
       case(","):
-        addToOut("\n"); /* no support for that operator yet. try to evaluate on seperate lines. */
+        addToOut(", "); /* normal mode , for loop \n */
         break;   
       default:
+        addToOut(" ");
         addToOut(node.operator);
         addToOut(" ");
       }
@@ -438,17 +388,17 @@ if */
       switch(node.operator)
       { 
         case('++'):
-        parseNode(node.expression);
-        addToOut(" = ");
-        parseNode(node.expression);
-        addToOut(" + 1");
-        break;
+          parseNode(node.expression);
+          addToOut(" = ");
+          parseNode(node.expression);
+          addToOut(" + 1");
+          break;
         case('--'):
-        parseNode(node.expression);
-        addToOut(" = ");
-        parseNode(node.expression);
-        addToOut(" - 1");
-        break;
+          parseNode(node.expression);
+          addToOut(" = ");
+          parseNode(node.expression);
+          addToOut(" - 1");
+          break;
       }
       addToOut("\n");
       break;
@@ -459,11 +409,10 @@ if */
       }
       else
       {
-      if(node.name.substr(0, 3) == "var")
-      {
-        /* -5 because of 4 for "var " and 1 for " " after */
-        addToOut(node.name.substr(4, node.name.length - 4).trim());
-      }
+        if(node.name.substr(0, 3) == "var")
+        {
+          addToOut(node.name.substr(4, node.name.length - 4).trim());
+        }
       }
       break;
     case("FunctionCall"):
@@ -477,14 +426,13 @@ if */
           parseNode(node.arguments[i]);
           if(i < node.arguments.length - 1) 
           { 
-          addToOut(", ");
+           addToOut(", ");
           }
         }    
       }
       addToOut(")");  
       break;
     case('StringLiteral'):
-      /* be sure to escape any control characters you need here with \ */
       var escapedValue = node.value.replace(/\n/g, "\\n");
       addToOut('"' + escapedValue + '"');
       break;
@@ -543,23 +491,19 @@ if */
   }
 }
 
-
-/* main section */
 parseNode(ast);
 
-/* output section */
 if(_runmode == "--convert")
 {
-
   sys.puts(removeBlankLines(output));
 }
 else
 {
-if(_runmode == "--showjs")
-{
-  sys.puts("Original JavaScript: ");
-  sys.puts(string_raw_js);
-  sys.puts("Generated CoffeeScript: ");  
-  sys.puts(output);
-}
+  if(_runmode == "--showjs")
+  {
+    sys.puts("Original JavaScript: ");
+    sys.puts(string_raw_js);
+    sys.puts("Generated CoffeeScript: ");  
+    sys.puts(output);
+  }
 }

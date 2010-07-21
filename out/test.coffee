@@ -1,8 +1,5 @@
-p: (obj) ->
-  obj_inspect: sys.inspect obj, yes, 100
-  sys.puts obj_inspect
+_e: 0, _g: _f.length
+while _e < _g
+  _e = _e + 1
+  thing()
 
-String.prototype.trim:  ->
-  str_to_return: @replace /^\s*/, ""
-  str_to_return: str_to_return.replace /\s*$/, ""
-  
