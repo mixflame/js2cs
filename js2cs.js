@@ -59,7 +59,7 @@ var decreaseIndent = function() {
   indent_level = indent_level - 1;
 }
 var indent = function()
-{ 
+{
   for(var c = 0; c < indent_level; c++)
   {
               addToOut("  ");
@@ -88,11 +88,11 @@ var parseChildNodes = function(nodes) {
         /* also don't parse labelledStatement. it's not used and we can't have empty cases if we wanna self host */
         is_labelled_statement = (_node.type == "LabelledStatement");
         /* indenter */
-        
+
         if(!(is_break) && !(is_labelled_statement)) {
           indent();
         }
-        
+
         /* token parser */
         if(!(is_just_var) && !(is_break) && !(is_labelled_statement))
         {
@@ -116,12 +116,12 @@ var parseNode = function(node) {
   {
     sys.puts(iteration + " " + node.type);
     p(node);
-  } 
+  }
 
   if(_runmode == "--ilevel")
   {
     sys.puts(iteration + " (" + indent_level + ") " +  node.type + " - " + node.name);
-  } 
+  }
 
   switch(node.type)
   {
@@ -141,7 +141,7 @@ var parseNode = function(node) {
         for(var i = 0; i < node.params.length; i++)
         {
           addToOut(node.params[i]);
-          if(i < node.params.length - 1) 
+          if(i < node.params.length - 1)
           {
           addToOut(", ");
           }
@@ -189,7 +189,7 @@ var parseNode = function(node) {
       {
         addToOut("\n");
         increaseIndent();
-        if(node.statements) 
+        if(node.statements)
         {
         parseChildNodes(node.statements);
         }
@@ -199,7 +199,7 @@ var parseNode = function(node) {
       {
         if(node.statements.length == 1)
         {
-          if(node.statements) 
+          if(node.statements)
           {
           parseNode(node.statements[0]);
           }
@@ -222,8 +222,8 @@ var parseNode = function(node) {
       addToOut("\n");
       /* statements */
       increaseIndent();
-      if(node.ifStatement.statements) 
-      { 
+      if(node.ifStatement.statements)
+      {
       parseChildNodes(node.ifStatement.statements);
       }
       decreaseIndent();
@@ -233,7 +233,7 @@ var parseNode = function(node) {
       addToOut("else");
       addToOut("\n");
       increaseIndent();
-      if(node.elseStatement.statements) 
+      if(node.elseStatement.statements)
       {
       parseChildNodes(node.elseStatement.statements);
       }
@@ -261,7 +261,7 @@ var parseNode = function(node) {
       parseNode(node.condition);
       addToOut("\n");
       if(node.statement)
-      { 
+      {
       parseNode(node.statement);
       }
       break;
@@ -279,7 +279,7 @@ var parseNode = function(node) {
       }
       break;
     case("Catch"):
-      if(node.identifier) 
+      if(node.identifier)
       {
       addToOut(node.identifier);
       }
@@ -315,7 +315,7 @@ var parseNode = function(node) {
           {
             addToOut(".");
             parseNode(node.name);
-          } 
+          }
          }
          else
          {
@@ -330,7 +330,7 @@ var parseNode = function(node) {
           addToOut(node.name.trim());
         }
       }
-         
+
       break;
     case("BinaryExpression"):
       parseNode(node.left);
@@ -354,10 +354,10 @@ var parseNode = function(node) {
         break;
       case("||"):
         addToOut(" or ");
-        break;   
+        break;
       case(","):
         addToOut(", "); /* normal mode , for loop \n */
-        break;   
+        break;
       default:
         addToOut(" ");
         addToOut(node.operator);
@@ -372,7 +372,7 @@ var parseNode = function(node) {
           addToOut("not ");
           break;
         default:
-          addToOut(node.operator);    
+          addToOut(node.operator);
       }
       parseNode(node.expression);
       break;
@@ -386,7 +386,7 @@ var parseNode = function(node) {
       break;
     case("PostfixExpression"):
       switch(node.operator)
-      { 
+      {
         case('++'):
           parseNode(node.expression);
           addToOut(" = ");
@@ -416,21 +416,21 @@ var parseNode = function(node) {
       }
       break;
     case("FunctionCall"):
-      parseNode(node.name);    
+      parseNode(node.name);
       addToOut("(");
       if(node.arguments.length > 0)
       {
-        
+
         for(var i = 0; i < node.arguments.length; i++)
         {
           parseNode(node.arguments[i]);
-          if(i < node.arguments.length - 1) 
-          { 
+          if(i < node.arguments.length - 1)
+          {
            addToOut(", ");
           }
-        }    
+        }
       }
-      addToOut(")");  
+      addToOut(")");
       break;
     case('StringLiteral'):
       var escapedValue = node.value.replace(/\n/g, "\\n");
@@ -454,7 +454,7 @@ var parseNode = function(node) {
         for(var i = 0; i < node.elements.length; i++)
         {
           parseNode(node.elements[i]);
-          if(i < node.elements.length - 1) 
+          if(i < node.elements.length - 1)
           {
             addToOut(", ");
           }
@@ -467,7 +467,7 @@ var parseNode = function(node) {
       {
         addToOut("{\n");
         increaseIndent();
-        if(node.properties) 
+        if(node.properties)
         {
           parseChildNodes(node.properties);
         }
@@ -487,7 +487,7 @@ var parseNode = function(node) {
         addToOut("no");
       }
       }
-    break;      
+    break;
   }
 }
 
@@ -503,7 +503,7 @@ else
   {
     sys.puts("Original JavaScript: ");
     sys.puts(string_raw_js);
-    sys.puts("Generated CoffeeScript: ");  
+    sys.puts("Generated CoffeeScript: ");
     sys.puts(output);
   }
 }

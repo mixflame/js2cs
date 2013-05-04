@@ -16,7 +16,7 @@ var decreaseIndent = function() {
   indent_level = indent_level - 1;
 }
 var indent = function()
-{ 
+{
   for(var c = 0; c < indent_level; c++)
   {
               addToOut("  ");
@@ -45,11 +45,11 @@ var parseChildNodes = function(nodes) {
         /* also don't parse labelledStatement. it's not used and we can't have empty cases if we wanna self host */
         is_labelled_statement = (_node.type == "LabelledStatement");
         /* indenter */
-        
+
         if(!(is_break) && !(is_labelled_statement)) {
           indent();
         }
-        
+
         /* token parser */
         if(!(is_just_var) && !(is_break) && !(is_labelled_statement))
         {
@@ -85,11 +85,11 @@ var parseNode = function(node) {
         for(var i = 0; i < node.params.length; i++)
         {
           /* this tokenizer is probably broken. node.params node should be parsed. */
-          
+
           addToOut(node.params[i]);
-          
+
           /*arseNode(node.params[i]);*/
-          if(i < node.params.length - 1) 
+          if(i < node.params.length - 1)
           {
           addToOut(", ");
           }
@@ -123,7 +123,7 @@ var parseNode = function(node) {
     case("CaseClause"):
       addToOut("when ");
       parseNode(node.selector);
-      /* 2 is the minimum because break; is a statement too 
+      /* 2 is the minimum because break; is a statement too
       if((node.statements.length > 2) || (node.statements.length == 1))
       {
       */
@@ -141,7 +141,7 @@ var parseNode = function(node) {
         if(node.statements.length == 2)
         {
           addToOut(" then ");
-          if(node.statements) 
+          if(node.statements)
           {
           parseNode(node.statements[0]);
           }
@@ -155,7 +155,7 @@ var parseNode = function(node) {
       {
         addToOut("\n");
         increaseIndent();
-        if(node.statements) 
+        if(node.statements)
         {
         parseChildNodes(node.statements);
         }
@@ -165,7 +165,7 @@ var parseNode = function(node) {
       {
         if(node.statements.length == 1)
         {
-          if(node.statements) 
+          if(node.statements)
           {
           parseNode(node.statements[0]);
           }
@@ -188,8 +188,8 @@ var parseNode = function(node) {
       addToOut("\n");
       /* statements */
       increaseIndent();
-      if(node.ifStatement.statements) 
-      { 
+      if(node.ifStatement.statements)
+      {
       parseChildNodes(node.ifStatement.statements);
       }
       decreaseIndent();
@@ -200,7 +200,7 @@ var parseNode = function(node) {
 if */
       addToOut("\n");
       increaseIndent();
-      if(node.elseStatement.statements) 
+      if(node.elseStatement.statements)
       {
       parseChildNodes(node.elseStatement.statements);
       }
@@ -229,7 +229,7 @@ if */
       parseNode(node.condition);
       addToOut("\n");
       if(node.statement)
-      { 
+      {
       parseNode(node.statement);
       }
       break;
@@ -248,7 +248,7 @@ if */
       }
       break;
     case("Catch"):
-      if(node.identifier) 
+      if(node.identifier)
       {
       addToOut(node.identifier);
       }
@@ -277,10 +277,10 @@ if */
         /*
         var node_dot_name_is_numeric_literal = (node.name.type == "NumericLiteral");
         var node_dot_name_is_string_literal = (node.name.type == "StringLiteral");
-        if(node.base.type != "This" && !(node_dot_name_is_numeric_literal) && !(node_dot_name_is_string_literal)) { addToOut("."); } 
-        
+        if(node.base.type != "This" && !(node_dot_name_is_numeric_literal) && !(node_dot_name_is_string_literal)) { addToOut("."); }
+
         if(node_dot_name_is_numeric_literal || node_dot_name_is_string_literal) { addToOut("["); }
-        
+
         if(node.base.type == "Variable")
         {
           addToOut(".");
@@ -299,7 +299,7 @@ if */
           {
             addToOut(".");
             parseNode(node.name);
-          } 
+          }
          }
          else
          {
@@ -311,7 +311,7 @@ if */
           parseNode(node.name);
          }
         }
-        
+
         if(node_dot_name_is_numeric_literal || node_dot_name_is_string_literal) { addToOut("]"); }
         */
       }
@@ -324,7 +324,7 @@ if */
           /*if(node.base.type != "This") { addToOut("']"); }*/
         }
       }
-         
+
       break;
     case("BinaryExpression"):
       parseNode(node.left);
@@ -349,10 +349,10 @@ if */
         break;
       case("||"):
         addToOut("or ");
-        break;   
+        break;
       case(","):
         addToOut("\n"); /* no support for that operator yet. try to evaluate on seperate lines. */
-        break;   
+        break;
       default:
         addToOut(node.operator);
         addToOut(" ");
@@ -366,7 +366,7 @@ if */
           addToOut("not ");
           break;
         default:
-          addToOut(node.operator);    
+          addToOut(node.operator);
       }
       parseNode(node.expression);
       break;
@@ -380,7 +380,7 @@ if */
       break;
     case("PostfixExpression"):
       switch(node.operator)
-      { 
+      {
         case('++'):
         parseNode(node.expression);
         addToOut(" = ");
@@ -411,21 +411,21 @@ if */
       }
       break;
     case("FunctionCall"):
-      parseNode(node.name);    
+      parseNode(node.name);
       addToOut("(");
       if(node.arguments.length > 0)
       {
-        
+
         for(var i = 0; i < node.arguments.length; i++)
         {
           parseNode(node.arguments[i]);
-          if(i < node.arguments.length - 1) 
-          { 
+          if(i < node.arguments.length - 1)
+          {
           addToOut(", ");
           }
-        }    
+        }
       }
-      addToOut(")");  
+      addToOut(")");
       break;
     case('StringLiteral'):
       /* be sure to escape any control characters you need here with \ */
@@ -450,7 +450,7 @@ if */
         for(var i = 0; i < node.elements.length; i++)
         {
           parseNode(node.elements[i]);
-          if(i < node.elements.length - 1) 
+          if(i < node.elements.length - 1)
           {
             addToOut(", ");
           }
@@ -463,7 +463,7 @@ if */
       {
         addToOut("{\n");
         increaseIndent();
-        if(node.properties) 
+        if(node.properties)
         {
           parseChildNodes(node.properties);
         }
@@ -483,7 +483,7 @@ if */
         addToOut("no");
       }
       }
-    break;      
+    break;
   }
 }
 

@@ -219,7 +219,7 @@ parseNode: (node)->
           addToOut("or ")
         when ","
           addToOut("\n")
-        else 
+        else
           addToOut(node.operator)
           addToOut(" ")
       parseNode(node.right)
